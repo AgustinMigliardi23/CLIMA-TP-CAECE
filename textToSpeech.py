@@ -1,98 +1,79 @@
 import os
 import time
-import playsound
-import speech_recognition as sr
-from gtts import gTTS
 import datetime as dt
 import arrange_data
+import userInput
 
-def speak(text):
-    tts = gTTS(text=text, lang="es")
-    fileName = "prueba.mp3"
-    tts.save(fileName)
-    playsound.playsound(fileName)
-# tomar datos, promedios de tempreratura
-# asignarle un valor a las prendas
-# seleccionar que prenda va con cada temp
-# armar una frase y que la diga el tts
-# day, temps, humidity, weather
-
-def getPhrase():
+def getPhrase(prediction, feel):
     conditions = getAndParseData()
     code = 0
     if conditions[1] > 61:
-        code = getClothesCode(conditions[0], True)
+        code = getClothesCode(conditions[0], True, False, prediction, feel)
     elif conditions[2] == "Despejado":
-        code = getClothesCode(conditions[0], False, True)
+        code = getClothesCode(conditions[0], False, True, prediction, feel)
     else:
-        code = getClothesCode(conditions[0], False, False)
-    
+        code = getClothesCode(conditions[0], False, False, prediction, feel)
     if code == 1:
         return "Deberias salir sin ropa ( ͡° ͜ʖ ͡°)"
     elif code == 2:
-        return "Deberias usar"
+        return "Deberias usar gorra, remera manga corta, pantalones cortos y ojotas."
     elif code == 3:
-        return "Deberias usar"
+        return "Deberias usar gorra, remera manga corta, pantalones largos y zapatillas."
     elif code == 4:
-        return "Deberias usar"
+        return "Deberias usar remera manga larga, un buzo, pantalones largos y zapatillas."
     elif code == 5:
-        return "Deberias usar"
+        return "Deberias usar remera manga larga, un buzo, una campera, pantalones largos y zapatillas."
     elif code == 6:
-        return "Deberias usar"
+        return "Deberias usar remera termica, un buzo, pantalones largos y zapatillas y unos guantes."
     elif code == 7:
-        return "Deberias usar"
+        return "Deberias usar remera termica, un buzo, pantalones termicos y botas y unos guantes."
     elif code == 8:
-        return "Deberias usar"
+        return "Deberias salir sin ropa ( ͡° ͜ʖ ͡°) y un paraguas."
     elif code == 9:
-        return "Deberias usar"
+        return "Deberias usar gorra, remera manga corta, pantalones cortos, ojotas y un paraguas."
     elif code == 10:
-        return "Deberias usar"
+        return "Deberias usar gorra, remera manga corta, pantalones largos, zapatillas y un paraguas"
     elif code == 11:
-        return "Deberias usar"
+        return "Deberias usar remera manga larga, un buzo, un piloto, pantalones largos, zapatillas y un paraguas."
     elif code == 12:
-        return "Deberias usar"
+        return "Deberias usar remera manga larga, un buzo, una campera, un piloto, panralones largos, zapatillas y un paraguas."
     elif code == 13:
-        return "Deberias usar"
+        return "Deberias usar remera termica, buzo, campera, un piloto, pantalones largos, zapatillas, guantes y un paraguas."
     elif code == 14:
-        return "Deberias usar"
+        return "Deberias usar remera termica, buzo, campera, un piloto, pantalon termico, botas, guantes y un paraguas."
     elif code == 15:
-        return "Deberias usar"
-    elif code == 16:
-        return "Deberias usar"
-    elif code == 17:
-        return "Deberias usar"
-    elif code == 18:
-        return "Deberias usar"
+        return "Deberias usar remera manga corta, pantalon corto y ojotas."
 
-def getClothesCode(temp, isRaining, clearSky):
+def getClothesCode(temp, isRaining, clearSky, prediction, feel):
     code = 0
+    bias = userInput.addUserInput(prediction, feel)
     if temp >= 50:
         code = 1
-    elif temp < 50 and temp >= 29:
+    elif temp < 50 and temp >= 25:
         if clearSky:
             code = 2
         else:
-            code = 17
-    elif temp < 29 and temp >= 23:
-        if clearSky:
-            code = 3
-        else:
-            code = 18
-    elif temp < 23 and temp >= 16:
-        code = 4
+            code = 15
+    elif temp < 24 and temp >= 16:
+        code = 3
     elif temp < 16 and temp >= 12:
-        code = 5
+        code = 4
     elif temp < 12 and temp >= 6:
-        code = 6
+        code = 5
     elif temp < 6 and temp >= 0:
-        code = 7
+        code = 6
     elif temp < 0:
-        code = 8
+        code = 7
     
     if (isRaining):
-        return code + 8
-    else:
+        code + 7
+    
+    if bias > 0 and (code == 7 or code == 14 or code == 15):
         return code
+    elif bias < 0 and (code == 1 or code == 8 or code == 15):
+        return code
+    else:
+        return code + bias
 
 def getAndParseData():
     forecast = arrange_data.arrange_data()
@@ -197,3 +178,16 @@ def get_sky(days):
     else:
         final += " totalmente nublado"
     return final
+
+
+def runShow():
+    print('La prediccion del tiempo de ayer fue correcta? 1- SI, 2- Hizo mas frio, 3- Hizo mas calor')
+    prediction = input()
+    print('La ropa recomendada de ayer fue correcta? 1- Si, 2- Tuve frio, 3- Tuve calor')
+    feel = input()
+    prediction = int(prediction)
+    feel = int(feel)
+    phrase = getPhrase(prediction, feel)
+    print(phrase)
+
+runShow()
